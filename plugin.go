@@ -31,7 +31,7 @@ func (p *Alertmanager) Init() models.Plugin {
 
 func (p *Alertmanager) Details() models.PluginDetails {
 	return models.PluginDetails{
-		Payload: models.PayloadInjector{
+		Payload: models.PayloadEndpoint{
 			Name:     "Alertmanager",
 			Type:     "alertmanager",
 			Endpoint: "/alertmanager",

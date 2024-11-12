@@ -18,18 +18,18 @@ type Receiver struct {
 	Receiver string `json:"receiver"`
 }
 
-type AlertmanagerHandler struct{}
+type Alertmanager struct{}
 
-func (h *AlertmanagerHandler) Init() models.Plugin {
+func (p *Alertmanager) Init() models.Plugin {
 	return models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
-		Version: "1.0.3",
+		Version: "1.0.4",
 		Creator: "JustNZ",
 	}
 }
 
-func (h *AlertmanagerHandler) Details() models.PluginDetails {
+func (p *Alertmanager) Details() models.PluginDetails {
 	return models.PluginDetails{
 		Payload: models.PayloadInjector{
 			Name:     "Alertmanager",
@@ -39,7 +39,7 @@ func (h *AlertmanagerHandler) Details() models.PluginDetails {
 	}
 }
 
-func (h *AlertmanagerHandler) Handle(context *gin.Context) {
+func (h *Alertmanager) Handle(context *gin.Context) {
 	log.Info("Received Alertmanager Payload")
 	incPayload, err := io.ReadAll(context.Request.Body)
 	if err != nil {
@@ -62,5 +62,4 @@ func (h *AlertmanagerHandler) Handle(context *gin.Context) {
 	payloads.SendPayload(payloadData)
 }
 
-// Exported symbol
-var Plugin AlertmanagerHandler
+var Plugin Alertmanager

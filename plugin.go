@@ -24,7 +24,7 @@ func (h *AlertmanagerHandler) Init() models.Plugin {
 	return models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
-		Version: "1.0.2",
+		Version: "1.0.3",
 		Creator: "JustNZ",
 	}
 }
@@ -63,4 +63,4 @@ func (h *AlertmanagerHandler) Handle(context *gin.Context) {
 }
 
 // Exported symbol
-var Handler AlertmanagerHandler
+var Plugin AlertmanagerHandler

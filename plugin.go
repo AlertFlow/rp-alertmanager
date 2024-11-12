@@ -24,7 +24,7 @@ func (p *Alertmanager) Init() models.Plugin {
 	return models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
-		Version: "1.0.4",
+		Version: "1.0.5",
 		Creator: "JustNZ",
 	}
 }
@@ -39,7 +39,7 @@ func (p *Alertmanager) Details() models.PluginDetails {
 	}
 }
 
-func (h *Alertmanager) Handle(context *gin.Context) {
+func (p *Alertmanager) Execute(context *gin.Context) {
 	log.Info("Received Alertmanager Payload")
 	incPayload, err := io.ReadAll(context.Request.Body)
 	if err != nil {

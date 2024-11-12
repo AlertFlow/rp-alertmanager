@@ -24,16 +24,18 @@ func (h *AlertmanagerHandler) Init() models.Plugin {
 	return models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
-		Version: "1.0.1",
+		Version: "1.0.2",
 		Creator: "JustNZ",
 	}
 }
 
-func (h *AlertmanagerHandler) Details() models.PayloadInjector {
-	return models.PayloadInjector{
-		Name:     "Alertmanager",
-		Type:     "alertmanager",
-		Endpoint: "/alertmanager",
+func (h *AlertmanagerHandler) Details() models.PluginDetails {
+	return models.PluginDetails{
+		Payload: models.PayloadInjector{
+			Name:     "Alertmanager",
+			Type:     "alertmanager",
+			Endpoint: "/alertmanager",
+		},
 	}
 }
 

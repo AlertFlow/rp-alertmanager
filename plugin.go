@@ -20,7 +20,16 @@ type Receiver struct {
 
 type AlertmanagerHandler struct{}
 
-func (h *AlertmanagerHandler) Init() models.PayloadInjector {
+func (h *AlertmanagerHandler) Init() models.Plugin {
+	return models.Plugin{
+		Name:    "Alertmanager",
+		Type:    "payload_endpoint",
+		Version: "1.0.1",
+		Creator: "JustNZ",
+	}
+}
+
+func (h *AlertmanagerHandler) Details() models.PayloadInjector {
 	return models.PayloadInjector{
 		Name:     "Alertmanager",
 		Type:     "alertmanager",

@@ -18,9 +18,9 @@ type Receiver struct {
 	Receiver string `json:"receiver"`
 }
 
-type Alertmanager struct{}
+type AlertmanagerPayloadPlugin struct{}
 
-func (p *Alertmanager) Init() models.Plugin {
+func (p *AlertmanagerPayloadPlugin) Init() models.Plugin {
 	return models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
@@ -29,7 +29,7 @@ func (p *Alertmanager) Init() models.Plugin {
 	}
 }
 
-func (p *Alertmanager) Details() models.PluginDetails {
+func (p *AlertmanagerPayloadPlugin) Details() models.PluginDetails {
 	return models.PluginDetails{
 		Payload: models.PayloadEndpoint{
 			Name:     "Alertmanager",
@@ -39,11 +39,11 @@ func (p *Alertmanager) Details() models.PluginDetails {
 	}
 }
 
-func (p *Alertmanager) Execute(execution models.Execution, flow models.Flows, payload models.Payload, steps []models.ExecutionSteps, step models.ExecutionSteps, action models.Actions) (data map[string]interface{}, finished bool, canceled bool, no_pattern_match bool, failed bool) {
+func (p *AlertmanagerPayloadPlugin) Execute(execution models.Execution, flow models.Flows, payload models.Payload, steps []models.ExecutionSteps, step models.ExecutionSteps, action models.Actions) (data map[string]interface{}, finished bool, canceled bool, no_pattern_match bool, failed bool) {
 	return nil, false, false, false, false
 }
 
-func (p *Alertmanager) Handle(context *gin.Context) {
+func (p *AlertmanagerPayloadPlugin) Handle(context *gin.Context) {
 	log.Info("Received Alertmanager Payload")
 	incPayload, err := io.ReadAll(context.Request.Body)
 	if err != nil {
@@ -59,11 +59,11 @@ func (p *Alertmanager) Handle(context *gin.Context) {
 	payloadData := models.Payload{
 		Payload:  incPayload,
 		FlowID:   receiver.Receiver,
-		RunnerID: config.Config.RunnerID,
+		RunnerID: config.Config.Alertflow.RunnerID,
 		Endpoint: "alertmanager",
 	}
 
 	payloads.SendPayload(payloadData)
 }
 
-var Plugin Alertmanager
+var Plugin AlertmanagerPayloadPlugin

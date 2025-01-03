@@ -1,6 +1,6 @@
 module gitlab.justlab.xyz/alertflow-public/runner-payload-plugins/alertmanager
 
-go 1.23.2
+go 1.23
 
 require (
 	github.com/gin-gonic/gin v1.10.0

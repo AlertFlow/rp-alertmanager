@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
-	"gitlab.justlab.xyz/alertflow-public/runner/config"
-	"gitlab.justlab.xyz/alertflow-public/runner/pkg/models"
-	"gitlab.justlab.xyz/alertflow-public/runner/pkg/payloads"
+	"github.com/AlertFlow/runner/config"
+	"github.com/AlertFlow/runner/pkg/models"
+	"github.com/AlertFlow/runner/pkg/payloads"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -24,7 +24,7 @@ func (p *AlertmanagerPayloadPlugin) Init() models.Plugin {
 	return models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
-		Version: "1.0.9",
+		Version: "1.0.10",
 		Creator: "JustNZ",
 	}
 }

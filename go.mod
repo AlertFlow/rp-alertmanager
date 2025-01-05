@@ -1,11 +1,11 @@
-module github.com/AlertFlow/runner-plugin-alertmanager
+module github.com/AlertFlow/rp-alertmanager
 
 go 1.23
 
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/sirupsen/logrus v1.9.3
-	gitlab.justlab.xyz/alertflow-public/runner v0.17.0-beta
+	github.com/AlertFlow/runner v0.18.0-beta
 )
 
 require (

@@ -24,7 +24,7 @@ func (p *AlertmanagerPayloadPlugin) Init() models.Plugin {
 	return models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
-		Version: "1.0.8",
+		Version: "1.0.9",
 		Creator: "JustNZ",
 	}
 }

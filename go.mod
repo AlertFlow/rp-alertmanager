@@ -1,4 +1,4 @@
-module gitlab.justlab.xyz/alertflow-public/runner-payload-plugins/alertmanager
+module github.com/AlertFlow/runner-plugin-alertmanager
 
 go 1.23
 

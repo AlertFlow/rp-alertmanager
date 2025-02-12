@@ -88,7 +88,7 @@ func payload() (outputData map[string]interface{}, success bool, err error) {
 
 	payloads.SendPayload(payloadData)
 
-	return nil, true, nil
+	return map[string]interface{}{}, true, nil
 }
 
 func handle(req protocol.Request) protocol.Response {

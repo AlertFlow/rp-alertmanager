@@ -3,7 +3,6 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +12,6 @@ import (
 	"github.com/AlertFlow/runner/pkg/payloads"
 	"github.com/AlertFlow/runner/pkg/protocol"
 
-	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -66,19 +64,14 @@ func Details() models.Plugin {
 	return plugin
 }
 
-func payload(context *gin.Context) (outputData map[string]interface{}, success bool, err error) {
+func payload(body json.RawMessage) (outputData map[string]interface{}, success bool, err error) {
 	log.Info("Received Alertmanager Payload")
-	incPayload, err := io.ReadAll(context.Request.Body)
-	if err != nil {
-		log.Error("Failed to read incoming payload")
-		return nil, false, err
-	}
 
 	receiver := Receiver{}
-	json.Unmarshal(incPayload, &receiver)
+	json.Unmarshal(body, &receiver)
 
 	payloadData := models.Payload{
-		Payload:  incPayload,
+		Payload:  body,
 		FlowID:   receiver.Receiver,
 		RunnerID: config.Config.Alertflow.RunnerID,
 		Endpoint: "alertmanager",
@@ -98,7 +91,7 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		outputData, success, err := payload(req.Data["context"].(*gin.Context))
+		outputData, success, err := payload(req.Data["body"].(json.RawMessage))
 		if err != nil {
 			return protocol.Response{
 				Success: false,

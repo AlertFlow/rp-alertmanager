@@ -62,7 +62,7 @@ func Details() models.Plugin {
 	return plugin
 }
 
-func payload(body json.RawMessage) (outputData map[string]interface{}, success bool, err error) {
+func payload(body json.RawMessage) (success bool, err error) {
 	receiver := Receiver{}
 	json.Unmarshal(body, &receiver)
 
@@ -75,7 +75,7 @@ func payload(body json.RawMessage) (outputData map[string]interface{}, success b
 
 	payloads.SendPayload(payloadData)
 
-	return map[string]interface{}{}, true, nil
+	return true, nil
 }
 
 func handle(req protocol.Request) protocol.Response {
@@ -87,7 +87,7 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		outputData, success, err := payload(req.Data["body"].(json.RawMessage))
+		success, err := payload(req.Data["body"].(json.RawMessage))
 		if err != nil {
 			return protocol.Response{
 				Success: false,
@@ -97,7 +97,7 @@ func handle(req protocol.Request) protocol.Response {
 
 		return protocol.Response{
 			Success: success,
-			Data:    outputData,
+			Data:    nil,
 		}
 
 	default:

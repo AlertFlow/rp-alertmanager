@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/AlertFlow/runner/config"
 	"github.com/AlertFlow/runner/pkg/models"
 	"github.com/AlertFlow/runner/pkg/payloads"
 	"github.com/AlertFlow/runner/pkg/protocol"
@@ -69,7 +68,7 @@ func payload(body json.RawMessage) (success bool, err error) {
 	payloadData := models.Payload{
 		Payload:  body,
 		FlowID:   "test",
-		RunnerID: config.Config.Alertflow.RunnerID,
+		RunnerID: "test2",
 		Endpoint: "alertmanager",
 	}
 

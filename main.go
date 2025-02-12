@@ -87,7 +87,8 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		data, success, err := payload(req.Data["body"].(json.RawMessage))
+		bodyBytes := json.RawMessage([]byte(req.Data["body"].(string)))
+		data, success, err := payload(bodyBytes)
 		if err != nil {
 			return protocol.Response{
 				Success: false,
@@ -106,6 +107,4 @@ func handle(req protocol.Request) protocol.Response {
 			Error:   "unknown action",
 		}
 	}
-
-	return protocol.Response{}
 }

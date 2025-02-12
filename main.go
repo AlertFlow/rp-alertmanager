@@ -98,7 +98,7 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		outputData, success, err := payload(nil)
+		outputData, success, err := payload(req.Data["context"].(*gin.Context))
 		if err != nil {
 			return protocol.Response{
 				Success: false,

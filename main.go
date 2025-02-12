@@ -78,6 +78,10 @@ func payload(body json.RawMessage) (success bool, err error) {
 	return true, nil
 }
 
+func test() (success bool, err error) {
+	return true, nil
+}
+
 func handle(req protocol.Request) protocol.Response {
 	switch req.Action {
 	case "details":
@@ -87,7 +91,8 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		success, err := payload(req.Data["body"].(json.RawMessage))
+		// success, err := payload(req.Data["body"].(json.RawMessage))
+		success, err := test()
 		if err != nil {
 			return protocol.Response{
 				Success: false,

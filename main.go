@@ -63,22 +63,18 @@ func Details() models.Plugin {
 }
 
 func payload(body json.RawMessage) (success bool, err error) {
-	receiver := Receiver{}
-	json.Unmarshal(body, &receiver)
+	// receiver := Receiver{}
+	// json.Unmarshal(body, &receiver)
 
 	payloadData := models.Payload{
 		Payload:  body,
-		FlowID:   receiver.Receiver,
+		FlowID:   "test",
 		RunnerID: config.Config.Alertflow.RunnerID,
 		Endpoint: "alertmanager",
 	}
 
 	payloads.SendPayload(payloadData)
 
-	return true, nil
-}
-
-func test() (success bool, err error) {
 	return true, nil
 }
 
@@ -91,8 +87,7 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		// success, err := payload(req.Data["body"].(json.RawMessage))
-		success, err := test()
+		success, err := payload(req.Data["body"].(json.RawMessage))
 		if err != nil {
 			return protocol.Response{
 				Success: false,

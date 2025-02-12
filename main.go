@@ -8,7 +8,6 @@ import (
 	"syscall"
 
 	"github.com/AlertFlow/runner/pkg/models"
-	"github.com/AlertFlow/runner/pkg/payloads"
 	"github.com/AlertFlow/runner/pkg/protocol"
 )
 
@@ -61,20 +60,22 @@ func Details() models.Plugin {
 	return plugin
 }
 
-func payload(body json.RawMessage) (success bool, err error) {
-	// receiver := Receiver{}
-	// json.Unmarshal(body, &receiver)
+func payload(body json.RawMessage) (data map[string]interface{}, success bool, err error) {
+	receiver := Receiver{}
+	json.Unmarshal(body, &receiver)
 
 	payloadData := models.Payload{
 		Payload:  body,
-		FlowID:   "test",
-		RunnerID: "test2",
+		FlowID:   receiver.Receiver,
+		RunnerID: "",
 		Endpoint: "alertmanager",
 	}
 
-	payloads.SendPayload(payloadData)
+	data = map[string]interface{}{
+		"payload": payloadData,
+	}
 
-	return true, nil
+	return data, true, nil
 }
 
 func handle(req protocol.Request) protocol.Response {
@@ -86,7 +87,7 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		success, err := payload(req.Data["body"].(json.RawMessage))
+		data, success, err := payload(req.Data["body"].(json.RawMessage))
 		if err != nil {
 			return protocol.Response{
 				Success: false,
@@ -96,7 +97,7 @@ func handle(req protocol.Request) protocol.Response {
 
 		return protocol.Response{
 			Success: success,
-			Data:    nil,
+			Data:    data,
 		}
 
 	default:

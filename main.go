@@ -11,8 +11,6 @@ import (
 	"github.com/AlertFlow/runner/pkg/models"
 	"github.com/AlertFlow/runner/pkg/payloads"
 	"github.com/AlertFlow/runner/pkg/protocol"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -65,8 +63,6 @@ func Details() models.Plugin {
 }
 
 func payload(body json.RawMessage) (outputData map[string]interface{}, success bool, err error) {
-	log.Info("Received Alertmanager Payload")
-
 	receiver := Receiver{}
 	json.Unmarshal(body, &receiver)
 

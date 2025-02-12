@@ -66,9 +66,7 @@ func Details() models.Plugin {
 	return plugin
 }
 
-func payload() (outputData map[string]interface{}, success bool, err error) {
-	var context *gin.Context
-
+func payload(context *gin.Context) (outputData map[string]interface{}, success bool, err error) {
 	log.Info("Received Alertmanager Payload")
 	incPayload, err := io.ReadAll(context.Request.Body)
 	if err != nil {
@@ -100,7 +98,7 @@ func handle(req protocol.Request) protocol.Response {
 		}
 
 	case "payload":
-		outputData, success, err := payload()
+		outputData, success, err := payload(nil)
 		if err != nil {
 			return protocol.Response{
 				Success: false,

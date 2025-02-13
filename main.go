@@ -1,51 +1,38 @@
-// FILE: alertmanager/alertmanager.go
 package main
 
 import (
-	"encoding/json"
-	"os"
-	"os/signal"
-	"syscall"
+	"context"
 
 	"github.com/AlertFlow/runner/pkg/models"
-	"github.com/AlertFlow/runner/pkg/protocol"
+	"github.com/AlertFlow/runner/pkg/plugin"
+	goplugin "github.com/hashicorp/go-plugin"
 )
 
-func main() {
-	decoder := json.NewDecoder(os.Stdin)
-	encoder := json.NewEncoder(os.Stdout)
+type AlertmanagerEndpointPlugin struct{}
 
-	// Handle graceful shutdown
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+func (p *AlertmanagerEndpointPlugin) Execute(ctx context.Context, req *plugin.Request) (*plugin.Response, error) {
+	return &plugin.Response{
+		Output:  "Processed: " + req.Input,
+		Success: true,
+	}, nil
+}
 
-	go func() {
-		<-sigChan
-		os.Exit(0)
-	}()
-
-	// Process requests
-	for {
-		var req protocol.Request
-		if err := decoder.Decode(&req); err != nil {
-			os.Exit(1)
-		}
-
-		// Handle the request
-		resp := handle(req)
-
-		if err := encoder.Encode(resp); err != nil {
-			os.Exit(1)
+func (p *AlertmanagerEndpointPlugin) StreamUpdates(req *plugin.Request, stream plugin.Plugin_StreamUpdatesServer) error {
+	// Your streaming logic here
+	updates := []string{"Starting", "Processing", "Completed"}
+	for i, status := range updates {
+		if err := stream.Send(&plugin.StatusUpdate{
+			Status:   status,
+			Progress: int32((i + 1) * 33),
+		}); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
-type Receiver struct {
-	Receiver string `json:"receiver"`
-}
-
-func Details() models.Plugin {
-	plugin := models.Plugin{
+func (p *AlertmanagerEndpointPlugin) Details() *models.Plugin {
+	return &models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "payload_endpoint",
 		Version: "1.0.11",
@@ -56,55 +43,16 @@ func Details() models.Plugin {
 			Endpoint: "/alertmanager",
 		},
 	}
-
-	return plugin
 }
 
-func payload(body json.RawMessage) (data map[string]interface{}, success bool, err error) {
-	receiver := Receiver{}
-	json.Unmarshal(body, &receiver)
-
-	payloadData := models.Payload{
-		Payload:  body,
-		FlowID:   receiver.Receiver,
-		RunnerID: "",
-		Endpoint: "alertmanager",
-	}
-
-	data = map[string]interface{}{
-		"payload": payloadData,
-	}
-
-	return data, true, nil
-}
-
-func handle(req protocol.Request) protocol.Response {
-	switch req.Action {
-	case "details":
-		return protocol.Response{
-			Success: true,
-			Plugin:  Details(),
-		}
-
-	case "payload":
-		bodyBytes := json.RawMessage([]byte(req.Data["body"].(string)))
-		data, success, err := payload(bodyBytes)
-		if err != nil {
-			return protocol.Response{
-				Success: false,
-				Error:   err.Error(),
-			}
-		}
-
-		return protocol.Response{
-			Success: success,
-			Data:    data,
-		}
-
-	default:
-		return protocol.Response{
-			Success: false,
-			Error:   "unknown action",
-		}
-	}
+func main() {
+	goplugin.Serve(&goplugin.ServeConfig{
+		HandshakeConfig: plugin.Handshake,
+		Plugins: map[string]goplugin.Plugin{
+			"example_plugin": &plugin.GRPCPlugin{
+				Impl: &AlertmanagerEndpointPlugin{},
+			},
+		},
+		GRPCServer: goplugin.DefaultGRPCServer,
+	})
 }

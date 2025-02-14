@@ -4,6 +4,7 @@ package main
 import (
 	"net/rpc"
 
+	"github.com/AlertFlow/runner/pkg/models"
 	"github.com/AlertFlow/runner/pkg/plugins"
 
 	"github.com/hashicorp/go-plugin"
@@ -17,11 +18,17 @@ func (p *AlertmanagerEndpointPlugin) Execute(args map[string]string) (string, er
 	return "Pong", nil
 }
 
-func (p *AlertmanagerEndpointPlugin) Info() (plugins.PluginInfo, error) {
-	return plugins.PluginInfo{
-		Name:    "Ping Plugin",
-		Version: "1.0.0",
-		Author:  "Author Name",
+func (p *AlertmanagerEndpointPlugin) Info() (models.Plugin, error) {
+	return models.Plugin{
+		Name:    "Alertmanager",
+		Type:    "payload_endpoint",
+		Version: "1.0.11",
+		Author:  "JustNZ",
+		Payload: models.PayloadEndpoint{
+			Name:     "Alertmanager",
+			Type:     "alertmanager",
+			Endpoint: "/alertmanager",
+		},
 	}, nil
 }
 
@@ -36,7 +43,7 @@ func (s *PluginRPCServer) Execute(args map[string]string, resp *string) error {
 	return err
 }
 
-func (s *PluginRPCServer) Info(args interface{}, resp *plugins.PluginInfo) error {
+func (s *PluginRPCServer) Info(args interface{}, resp *models.Plugin) error {
 	result, err := s.Impl.Info()
 	*resp = result
 	return err

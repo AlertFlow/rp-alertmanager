@@ -1,58 +1,70 @@
+// filepath: /path/to/ping-plugin/main.go
 package main
 
 import (
-	"context"
+	"net/rpc"
 
-	"github.com/AlertFlow/runner/pkg/models"
-	"github.com/AlertFlow/runner/pkg/plugin"
-	goplugin "github.com/hashicorp/go-plugin"
+	"github.com/AlertFlow/runner/pkg/plugins"
+
+	"github.com/hashicorp/go-plugin"
 )
 
+// PingPlugin is an implementation of the Plugin interface
 type AlertmanagerEndpointPlugin struct{}
 
-func (p *AlertmanagerEndpointPlugin) Execute(ctx context.Context, req *plugin.Request) (*plugin.Response, error) {
-	return &plugin.Response{
-		Output:  "Processed: " + req.Input,
-		Success: true,
+func (p *AlertmanagerEndpointPlugin) Execute(args map[string]string) (string, error) {
+	// Implement the ping logic here
+	return "Pong", nil
+}
+
+func (p *AlertmanagerEndpointPlugin) Info() (plugins.PluginInfo, error) {
+	return plugins.PluginInfo{
+		Name:    "Ping Plugin",
+		Version: "1.0.0",
+		Author:  "Author Name",
 	}, nil
 }
 
-func (p *AlertmanagerEndpointPlugin) StreamUpdates(req *plugin.Request, stream plugin.Plugin_StreamUpdatesServer) error {
-	// Your streaming logic here
-	updates := []string{"Starting", "Processing", "Completed"}
-	for i, status := range updates {
-		if err := stream.Send(&plugin.StatusUpdate{
-			Status:   status,
-			Progress: int32((i + 1) * 33),
-		}); err != nil {
-			return err
-		}
-	}
-	return nil
+// PluginRPCServer is the RPC server for Plugin
+type PluginRPCServer struct {
+	Impl plugins.Plugin
 }
 
-func (p *AlertmanagerEndpointPlugin) Details() *models.Plugin {
-	return &models.Plugin{
-		Name:    "Alertmanager",
-		Type:    "payload_endpoint",
-		Version: "1.0.11",
-		Author:  "JustNZ",
-		Payload: models.PayloadEndpoint{
-			Name:     "Alertmanager",
-			Type:     "alertmanager",
-			Endpoint: "/alertmanager",
-		},
-	}
+func (s *PluginRPCServer) Execute(args map[string]string, resp *string) error {
+	result, err := s.Impl.Execute(args)
+	*resp = result
+	return err
+}
+
+func (s *PluginRPCServer) Info(args interface{}, resp *plugins.PluginInfo) error {
+	result, err := s.Impl.Info()
+	*resp = result
+	return err
+}
+
+// PluginServer is the implementation of plugin.Plugin interface
+type PluginServer struct {
+	Impl plugins.Plugin
+}
+
+func (p *PluginServer) Server(*plugin.MuxBroker) (interface{}, error) {
+	return &PluginRPCServer{Impl: p.Impl}, nil
+}
+
+func (p *PluginServer) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+	return &plugins.PluginRPC{Client: c}, nil
 }
 
 func main() {
-	goplugin.Serve(&goplugin.ServeConfig{
-		HandshakeConfig: plugin.Handshake,
-		Plugins: map[string]goplugin.Plugin{
-			"example_plugin": &plugin.GRPCPlugin{
-				Impl: &AlertmanagerEndpointPlugin{},
-			},
+	plugin.Serve(&plugin.ServeConfig{
+		HandshakeConfig: plugin.HandshakeConfig{
+			ProtocolVersion:  1,
+			MagicCookieKey:   "PLUGIN_MAGIC_COOKIE",
+			MagicCookieValue: "hello",
 		},
-		GRPCServer: goplugin.DefaultGRPCServer,
+		Plugins: map[string]plugin.Plugin{
+			"plugin": &PluginServer{Impl: &AlertmanagerEndpointPlugin{}},
+		},
+		GRPCServer: plugin.DefaultGRPCServer,
 	})
 }

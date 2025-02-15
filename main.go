@@ -52,7 +52,7 @@ func (p *AlertmanagerEndpointPlugin) Info() (models.Plugins, error) {
 	return models.Plugins{
 		Name:    "Alertmanager",
 		Type:    "endpoint",
-		Version: "1.0.11",
+		Version: "1.1.0",
 		Author:  "JustNZ",
 		Endpoints: models.PayloadEndpoints{
 			ID:       "alertmanager",

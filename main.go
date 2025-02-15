@@ -24,10 +24,9 @@ type Receiver struct {
 type AlertmanagerEndpointPlugin struct{}
 
 func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequest) (plugins.Response, error) {
-	// Implement the ping logic here
 	return plugins.Response{
-		Success: true,
-		Error:   "",
+		Success: false,
+		Error:   "Not implemented",
 	}, nil
 }
 

@@ -13,9 +13,12 @@ import (
 // PingPlugin is an implementation of the Plugin interface
 type AlertmanagerEndpointPlugin struct{}
 
-func (p *AlertmanagerEndpointPlugin) Execute(args map[string]string) (string, error) {
+func (p *AlertmanagerEndpointPlugin) Execute(request plugins.ExecuteRequest) (plugins.ExecuteResponse, error) {
 	// Implement the ping logic here
-	return "Pong", nil
+	return plugins.ExecuteResponse{
+		Success: true,
+		Error:   "",
+	}, nil
 }
 
 func (p *AlertmanagerEndpointPlugin) Info() (models.Plugin, error) {
@@ -37,8 +40,8 @@ type PluginRPCServer struct {
 	Impl plugins.Plugin
 }
 
-func (s *PluginRPCServer) Execute(args map[string]string, resp *string) error {
-	result, err := s.Impl.Execute(args)
+func (s *PluginRPCServer) Execute(request plugins.ExecuteRequest, resp *plugins.ExecuteResponse) error {
+	result, err := s.Impl.Execute(request)
 	*resp = result
 	return err
 }

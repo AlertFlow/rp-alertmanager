@@ -4,7 +4,6 @@ package main
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 	"net/rpc"
 
 	"github.com/AlertFlow/runner/pkg/payloads"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
 
-	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -31,13 +29,8 @@ func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequ
 }
 
 func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandlerRequest) (plugins.Response, error) {
-	context := request.Context
-
-	incPayload, err := io.ReadAll(context.Request.Body)
+	incPayload, err := io.ReadAll(request.Body)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read request body",
-		})
 		return plugins.Response{
 			Success: false,
 			Error:   "Failed to read request body",

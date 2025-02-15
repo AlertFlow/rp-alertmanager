@@ -1,5 +1,5 @@
-github.com/AlertFlow/runner v0.19.0-beta.0.20250215145202-f204c0c8e350 h1:/JrvOMmN2QGTgWGAHXlU91gwW/RWqSCZcsJ3neu7Ui8=
-github.com/AlertFlow/runner v0.19.0-beta.0.20250215145202-f204c0c8e350/go.mod h1:wxcUvPG3CVnSnySotSazuBWCXclLXHxMCZizHVwTPiI=
+github.com/AlertFlow/runner v0.19.0-beta.0.20250215145657-8a6ae3b3db71 h1:D7ZuVbILboNKoQVnx0LxquR5h/bGFKm4J7ExRTlwVS4=
+github.com/AlertFlow/runner v0.19.0-beta.0.20250215145657-8a6ae3b3db71/go.mod h1:wxcUvPG3CVnSnySotSazuBWCXclLXHxMCZizHVwTPiI=
 github.com/bufbuild/protocompile v0.4.0 h1:LbFKd2XowZvQ/kajzguUp2DC9UEIQhIq77fZZlaQsNA=
 github.com/bufbuild/protocompile v0.4.0/go.mod h1:3v93+mbWn/v3xzN+31nwkJfrEpAUwp+BagBSZWx+TP8=
 github.com/bytedance/sonic v1.12.6 h1:/isNmCUF2x3Sh8RAp/4mh4ZGkcFAX/hLrzrK3AvpRzk=

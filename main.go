@@ -3,7 +3,6 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"net/rpc"
 
 	"github.com/AlertFlow/runner/pkg/payloads"
@@ -29,13 +28,7 @@ func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequ
 }
 
 func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandlerRequest) (plugins.Response, error) {
-	incPayload, err := io.ReadAll(request.Body)
-	if err != nil {
-		return plugins.Response{
-			Success: false,
-			Error:   "Failed to read request body",
-		}, nil
-	}
+	incPayload := request.Body
 
 	receiver := Receiver{}
 	json.Unmarshal(incPayload, &receiver)

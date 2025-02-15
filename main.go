@@ -73,6 +73,12 @@ func (s *PluginRPCServer) ExecuteTask(request plugins.ExecuteTaskRequest, resp *
 	return err
 }
 
+func (s *PluginRPCServer) HandlePayload(request plugins.PayloadHandlerRequest, resp *plugins.Response) error {
+	result, err := s.Impl.HandlePayload(request)
+	*resp = result
+	return err
+}
+
 func (s *PluginRPCServer) Info(args interface{}, resp *models.Plugins) error {
 	result, err := s.Impl.Info()
 	*resp = result

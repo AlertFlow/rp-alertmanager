@@ -2,21 +2,62 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
+	"net/http"
 	"net/rpc"
 
+	"github.com/AlertFlow/runner/pkg/payloads"
 	"github.com/AlertFlow/runner/pkg/plugins"
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/go-plugin"
 )
 
-// PingPlugin is an implementation of the Plugin interface
+type Receiver struct {
+	Receiver string `json:"receiver"`
+}
+
+// AlertmanagerEndpointPlugin is an implementation of the Plugin interface
 type AlertmanagerEndpointPlugin struct{}
 
-func (p *AlertmanagerEndpointPlugin) Execute(request plugins.ExecuteRequest) (plugins.ExecuteResponse, error) {
+func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequest) (plugins.Response, error) {
 	// Implement the ping logic here
-	return plugins.ExecuteResponse{
+	return plugins.Response{
+		Success: true,
+		Error:   "",
+	}, nil
+}
+
+func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandlerRequest) (plugins.Response, error) {
+	context := request.Context
+
+	incPayload, err := io.ReadAll(context.Request.Body)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read request body",
+		})
+		return plugins.Response{
+			Success: false,
+			Error:   "Failed to read request body",
+		}, nil
+	}
+
+	receiver := Receiver{}
+	json.Unmarshal(incPayload, &receiver)
+
+	payloadData := models.Payloads{
+		Payload:  incPayload,
+		FlowID:   receiver.Receiver,
+		RunnerID: request.Config.Alertflow.RunnerID,
+		Endpoint: "alertmanager",
+	}
+
+	payloads.SendPayload(request.Config, payloadData)
+
+	return plugins.Response{
 		Success: true,
 		Error:   "",
 	}, nil
@@ -41,8 +82,8 @@ type PluginRPCServer struct {
 	Impl plugins.Plugin
 }
 
-func (s *PluginRPCServer) Execute(request plugins.ExecuteRequest, resp *plugins.ExecuteResponse) error {
-	result, err := s.Impl.Execute(request)
+func (s *PluginRPCServer) ExecuteTask(request plugins.ExecuteTaskRequest, resp *plugins.Response) error {
+	result, err := s.Impl.ExecuteTask(request)
 	*resp = result
 	return err
 }

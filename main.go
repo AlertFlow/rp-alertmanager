@@ -1,110 +1,113 @@
-// FILE: alertmanager/alertmanager.go
+// filepath: /path/to/ping-plugin/main.go
 package main
 
 import (
 	"encoding/json"
-	"os"
-	"os/signal"
-	"syscall"
+	"net/rpc"
 
-	"github.com/AlertFlow/runner/pkg/models"
-	"github.com/AlertFlow/runner/pkg/protocol"
+	"github.com/AlertFlow/runner/pkg/payloads"
+	"github.com/AlertFlow/runner/pkg/plugins"
+
+	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
+
+	"github.com/hashicorp/go-plugin"
 )
-
-func main() {
-	decoder := json.NewDecoder(os.Stdin)
-	encoder := json.NewEncoder(os.Stdout)
-
-	// Handle graceful shutdown
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	go func() {
-		<-sigChan
-		os.Exit(0)
-	}()
-
-	// Process requests
-	for {
-		var req protocol.Request
-		if err := decoder.Decode(&req); err != nil {
-			os.Exit(1)
-		}
-
-		// Handle the request
-		resp := handle(req)
-
-		if err := encoder.Encode(resp); err != nil {
-			os.Exit(1)
-		}
-	}
-}
 
 type Receiver struct {
 	Receiver string `json:"receiver"`
 }
 
-func Details() models.Plugin {
-	plugin := models.Plugin{
-		Name:    "Alertmanager",
-		Type:    "payload_endpoint",
-		Version: "1.0.11",
-		Author:  "JustNZ",
-		Payload: models.PayloadEndpoint{
-			Name:     "Alertmanager",
-			Type:     "alertmanager",
-			Endpoint: "/alertmanager",
-		},
-	}
+// AlertmanagerEndpointPlugin is an implementation of the Plugin interface
+type AlertmanagerEndpointPlugin struct{}
 
-	return plugin
+func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequest) (plugins.Response, error) {
+	return plugins.Response{
+		Success: false,
+		Error:   "Not implemented",
+	}, nil
 }
 
-func payload(body json.RawMessage) (data map[string]interface{}, success bool, err error) {
-	receiver := Receiver{}
-	json.Unmarshal(body, &receiver)
+func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandlerRequest) (plugins.Response, error) {
+	incPayload := request.Body
 
-	payloadData := models.Payload{
-		Payload:  body,
+	receiver := Receiver{}
+	json.Unmarshal(incPayload, &receiver)
+
+	payloadData := models.Payloads{
+		Payload:  incPayload,
 		FlowID:   receiver.Receiver,
-		RunnerID: "",
+		RunnerID: request.Config.Alertflow.RunnerID,
 		Endpoint: "alertmanager",
 	}
 
-	data = map[string]interface{}{
-		"payload": payloadData,
-	}
+	payloads.SendPayload(request.Config, payloadData)
 
-	return data, true, nil
+	return plugins.Response{
+		Success: true,
+		Error:   "",
+	}, nil
 }
 
-func handle(req protocol.Request) protocol.Response {
-	switch req.Action {
-	case "details":
-		return protocol.Response{
-			Success: true,
-			Plugin:  Details(),
-		}
+func (p *AlertmanagerEndpointPlugin) Info() (models.Plugins, error) {
+	return models.Plugins{
+		Name:    "Alertmanager",
+		Type:    "endpoint",
+		Version: "1.1.0",
+		Author:  "JustNZ",
+		Endpoints: models.PayloadEndpoints{
+			ID:       "alertmanager",
+			Name:     "Alertmanager",
+			Endpoint: "/alertmanager",
+		},
+	}, nil
+}
 
-	case "payload":
-		bodyBytes := json.RawMessage([]byte(req.Data["body"].(string)))
-		data, success, err := payload(bodyBytes)
-		if err != nil {
-			return protocol.Response{
-				Success: false,
-				Error:   err.Error(),
-			}
-		}
+// PluginRPCServer is the RPC server for Plugin
+type PluginRPCServer struct {
+	Impl plugins.Plugin
+}
 
-		return protocol.Response{
-			Success: success,
-			Data:    data,
-		}
+func (s *PluginRPCServer) ExecuteTask(request plugins.ExecuteTaskRequest, resp *plugins.Response) error {
+	result, err := s.Impl.ExecuteTask(request)
+	*resp = result
+	return err
+}
 
-	default:
-		return protocol.Response{
-			Success: false,
-			Error:   "unknown action",
-		}
-	}
+func (s *PluginRPCServer) HandlePayload(request plugins.PayloadHandlerRequest, resp *plugins.Response) error {
+	result, err := s.Impl.HandlePayload(request)
+	*resp = result
+	return err
+}
+
+func (s *PluginRPCServer) Info(args interface{}, resp *models.Plugins) error {
+	result, err := s.Impl.Info()
+	*resp = result
+	return err
+}
+
+// PluginServer is the implementation of plugin.Plugin interface
+type PluginServer struct {
+	Impl plugins.Plugin
+}
+
+func (p *PluginServer) Server(*plugin.MuxBroker) (interface{}, error) {
+	return &PluginRPCServer{Impl: p.Impl}, nil
+}
+
+func (p *PluginServer) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+	return &plugins.PluginRPC{Client: c}, nil
+}
+
+func main() {
+	plugin.Serve(&plugin.ServeConfig{
+		HandshakeConfig: plugin.HandshakeConfig{
+			ProtocolVersion:  1,
+			MagicCookieKey:   "PLUGIN_MAGIC_COOKIE",
+			MagicCookieValue: "hello",
+		},
+		Plugins: map[string]plugin.Plugin{
+			"plugin": &PluginServer{Impl: &AlertmanagerEndpointPlugin{}},
+		},
+		GRPCServer: plugin.DefaultGRPCServer,
+	})
 }

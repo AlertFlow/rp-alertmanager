@@ -3,9 +3,9 @@ module github.com/AlertFlow/rp-alertmanager
 go 1.23
 
 require (
-	github.com/AlertFlow/runner v0.19.0-beta.0.20250215150420-8c591d9255e5
+	github.com/AlertFlow/runner v1.0.0-beta1
 	github.com/hashicorp/go-plugin v1.6.3
-	github.com/v1Flows/alertFlow/services/backend v0.0.0-20250215104036-f8c3b0847818
+	github.com/v1Flows/alertFlow/services/backend v0.0.0-20250216182013-403162bb3661
 )
 
 require (

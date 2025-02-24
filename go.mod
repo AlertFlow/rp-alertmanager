@@ -6,7 +6,7 @@ require (
 	github.com/AlertFlow/runner v1.0.0-beta1.0.20250224104434-3dfa6a75ea95
 	github.com/hashicorp/go-plugin v1.6.3
 	github.com/tidwall/gjson v1.18.0
-	github.com/v1Flows/alertFlow/services/backend v0.0.0-20250224113241-3d78cd001cf7
+	github.com/v1Flows/alertFlow/services/backend v0.0.0-20250224125208-0d04391f4bff
 )
 
 require (

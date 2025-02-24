@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/rpc"
 
-	"github.com/AlertFlow/runner/pkg/payloads"
+	"github.com/AlertFlow/runner/pkg/alerts"
 	"github.com/AlertFlow/runner/pkg/plugins"
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
@@ -23,7 +23,6 @@ type AlertmanagerEndpointPlugin struct{}
 func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequest) (plugins.Response, error) {
 	return plugins.Response{
 		Success: false,
-		Error:   "Not implemented",
 	}, nil
 }
 
@@ -33,18 +32,17 @@ func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandle
 	receiver := Receiver{}
 	json.Unmarshal(incPayload, &receiver)
 
-	payloadData := models.Payloads{
+	alertData := models.Alerts{
 		Payload:  incPayload,
 		FlowID:   receiver.Receiver,
 		RunnerID: request.Config.Alertflow.RunnerID,
 		Endpoint: "alertmanager",
 	}
 
-	payloads.SendPayload(request.Config, payloadData)
+	alerts.SendAlert(request.Config, alertData)
 
 	return plugins.Response{
 		Success: true,
-		Error:   "",
 	}, nil
 }
 
@@ -54,7 +52,7 @@ func (p *AlertmanagerEndpointPlugin) Info() (models.Plugins, error) {
 		Type:    "endpoint",
 		Version: "1.1.0",
 		Author:  "JustNZ",
-		Endpoints: models.PayloadEndpoints{
+		Endpoints: models.AlertEndpoints{
 			ID:       "alertmanager",
 			Name:     "Alertmanager",
 			Endpoint: "/alertmanager",

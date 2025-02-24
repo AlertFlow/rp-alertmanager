@@ -85,7 +85,12 @@ func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandle
 		alertData.Affected = []string{"Unknown"}
 	}
 
-	alerts.SendAlert(request.Config, alertData)
+	// check if alert is resolved
+	if payload.Status == "resolved" {
+		alerts.UpdateAlert(request.Config, alertData)
+	} else {
+		alerts.SendAlert(request.Config, alertData)
+	}
 
 	return plugins.Response{
 		Success: true,

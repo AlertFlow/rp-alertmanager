@@ -11,10 +11,14 @@ import (
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
 
 	"github.com/hashicorp/go-plugin"
+	"github.com/tidwall/gjson"
 )
 
-type Receiver struct {
-	Receiver string `json:"receiver"`
+type Payload struct {
+	Receiver string     `json:"receiver"`
+	Status   string     `json:"status"`
+	Origin   string     `json:"externalURL"`
+	Alerts   []struct{} `json:"alerts"`
 }
 
 // AlertmanagerEndpointPlugin is an implementation of the Plugin interface
@@ -29,14 +33,56 @@ func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequ
 func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandlerRequest) (plugins.Response, error) {
 	incPayload := request.Body
 
-	receiver := Receiver{}
-	json.Unmarshal(incPayload, &receiver)
+	payloadString := string(incPayload)
+
+	payload := Payload{}
+	json.Unmarshal(incPayload, &payload)
 
 	alertData := models.Alerts{
 		Payload:  incPayload,
-		FlowID:   receiver.Receiver,
+		FlowID:   payload.Receiver,
 		RunnerID: request.Config.Alertflow.RunnerID,
-		Endpoint: "alertmanager",
+		Plugin:   "Alertmanager",
+		Status:   payload.Status,
+		Origin:   payload.Origin,
+	}
+
+	// search for alertname in payload
+	if gjson.Get(payloadString, "commonLabels.alertname").Exists() {
+		alertData.Name = gjson.Get(payloadString, "commonLabels.alertname").String()
+	} else if gjson.Get(payloadString, "groupLabels.alertname").Exists() {
+		alertData.Name = gjson.Get(payloadString, "groupLabels.alertname").String()
+	} else {
+		alertData.Name = "Unknown"
+	}
+
+	// check if we have more than one Alert
+	if gjson.Get(payloadString, "alerts").Exists() {
+		alerts := gjson.Get(payloadString, "alerts").Array()
+		for _, alert := range alerts {
+			if alert.Get("labels.alertname").Exists() {
+				alertData.GroupedAlerts = append(alertData.GroupedAlerts, models.GroupedAlert{
+					Name:        alert.Get("labels.alertname").String(),
+					Description: alert.Get("annotations.description").String(),
+					Status:      alert.Get("status").String(),
+					Affected:    []string{alert.Get("labels.instance").String()},
+				})
+			}
+		}
+	} else {
+		alertData.GroupedAlerts = append(alertData.GroupedAlerts, models.GroupedAlert{
+			Name:        alertData.Name,
+			Description: gjson.Get(payloadString, "commonAnnotations.description").String(),
+			Status:      alertData.Status,
+			Affected:    alertData.Affected,
+		})
+	}
+
+	// get intance from payload
+	if gjson.Get(payloadString, "commonLabels.instance").Exists() {
+		alertData.Affected = []string{gjson.Get(payloadString, "commonLabels.instance").String()}
+	} else {
+		alertData.Affected = []string{"Unknown"}
 	}
 
 	alerts.SendAlert(request.Config, alertData)
@@ -56,6 +102,8 @@ func (p *AlertmanagerEndpointPlugin) Info() (models.Plugins, error) {
 			ID:       "alertmanager",
 			Name:     "Alertmanager",
 			Endpoint: "/alertmanager",
+			Icon:     "vscode-icons:file-type-prometheus",
+			Color:    "#e6522c",
 		},
 	}, nil
 }

@@ -15,10 +15,9 @@ import (
 )
 
 type Payload struct {
-	Receiver string     `json:"receiver"`
-	Status   string     `json:"status"`
-	Origin   string     `json:"externalURL"`
-	Alerts   []struct{} `json:"alerts"`
+	Receiver string `json:"receiver"`
+	Status   string `json:"status"`
+	Origin   string `json:"externalURL"`
 }
 
 // AlertmanagerEndpointPlugin is an implementation of the Plugin interface
@@ -86,7 +85,7 @@ func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandle
 	}
 
 	// check if alert is resolved
-	if payload.Status == "resolved" {
+	if alertData.Status == "resolved" {
 		alerts.UpdateAlert(request.Config, alertData)
 	} else {
 		alerts.SendAlert(request.Config, alertData)

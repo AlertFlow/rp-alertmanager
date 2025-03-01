@@ -43,7 +43,6 @@ func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandle
 		RunnerID: request.Config.Alertflow.RunnerID,
 		Plugin:   "Alertmanager",
 		Status:   payload.Status,
-		Origin:   payload.Origin,
 	}
 
 	// search for alertname in payload
@@ -55,41 +54,8 @@ func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandle
 		alertData.Name = "Unknown"
 	}
 
-	// check if we have more than one Alert
-	if gjson.Get(payloadString, "alerts").Exists() {
-		alerts := gjson.Get(payloadString, "alerts").Array()
-		for _, alert := range alerts {
-			if alert.Get("labels.alertname").Exists() {
-				alertData.GroupedAlerts = append(alertData.GroupedAlerts, models.GroupedAlert{
-					Name:        alert.Get("labels.alertname").String(),
-					Description: alert.Get("annotations.description").String(),
-					Status:      alert.Get("status").String(),
-					Affected:    []string{alert.Get("labels.instance").String()},
-				})
-			}
-		}
-	} else {
-		alertData.GroupedAlerts = append(alertData.GroupedAlerts, models.GroupedAlert{
-			Name:        alertData.Name,
-			Description: gjson.Get(payloadString, "commonAnnotations.description").String(),
-			Status:      alertData.Status,
-			Affected:    alertData.Affected,
-		})
-	}
-
-	// get intance from payload
-	if gjson.Get(payloadString, "commonLabels.instance").Exists() {
-		alertData.Affected = []string{gjson.Get(payloadString, "commonLabels.instance").String()}
-	} else {
-		alertData.Affected = []string{"Unknown"}
-	}
-
 	// check if alert is resolved
-	if alertData.Status == "resolved" {
-		alerts.UpdateAlert(request.Config, alertData)
-	} else {
-		alerts.SendAlert(request.Config, alertData)
-	}
+	alerts.SendAlert(request.Config, alertData)
 
 	return plugins.Response{
 		Success: true,

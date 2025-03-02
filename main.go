@@ -5,16 +5,19 @@ import (
 	"encoding/json"
 	"net/rpc"
 
-	"github.com/AlertFlow/runner/pkg/payloads"
+	"github.com/AlertFlow/runner/pkg/alerts"
 	"github.com/AlertFlow/runner/pkg/plugins"
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
 
 	"github.com/hashicorp/go-plugin"
+	"github.com/tidwall/gjson"
 )
 
-type Receiver struct {
+type Payload struct {
 	Receiver string `json:"receiver"`
+	Status   string `json:"status"`
+	Origin   string `json:"externalURL"`
 }
 
 // AlertmanagerEndpointPlugin is an implementation of the Plugin interface
@@ -23,28 +26,39 @@ type AlertmanagerEndpointPlugin struct{}
 func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequest) (plugins.Response, error) {
 	return plugins.Response{
 		Success: false,
-		Error:   "Not implemented",
 	}, nil
 }
 
-func (p *AlertmanagerEndpointPlugin) HandlePayload(request plugins.PayloadHandlerRequest) (plugins.Response, error) {
+func (p *AlertmanagerEndpointPlugin) HandleAlert(request plugins.AlertHandlerRequest) (plugins.Response, error) {
 	incPayload := request.Body
 
-	receiver := Receiver{}
-	json.Unmarshal(incPayload, &receiver)
+	payloadString := string(incPayload)
 
-	payloadData := models.Payloads{
+	payload := Payload{}
+	json.Unmarshal(incPayload, &payload)
+
+	alertData := models.Alerts{
 		Payload:  incPayload,
-		FlowID:   receiver.Receiver,
+		FlowID:   payload.Receiver,
 		RunnerID: request.Config.Alertflow.RunnerID,
-		Endpoint: "alertmanager",
+		Plugin:   "Alertmanager",
+		Status:   payload.Status,
 	}
 
-	payloads.SendPayload(request.Config, payloadData)
+	// search for alertname in payload
+	if gjson.Get(payloadString, "commonLabels.alertname").Exists() {
+		alertData.Name = gjson.Get(payloadString, "commonLabels.alertname").String()
+	} else if gjson.Get(payloadString, "groupLabels.alertname").Exists() {
+		alertData.Name = gjson.Get(payloadString, "groupLabels.alertname").String()
+	} else {
+		alertData.Name = "Unknown"
+	}
+
+	// check if alert is resolved
+	alerts.SendAlert(request.Config, alertData)
 
 	return plugins.Response{
 		Success: true,
-		Error:   "",
 	}, nil
 }
 
@@ -54,10 +68,12 @@ func (p *AlertmanagerEndpointPlugin) Info() (models.Plugins, error) {
 		Type:    "endpoint",
 		Version: "1.1.0",
 		Author:  "JustNZ",
-		Endpoints: models.PayloadEndpoints{
+		Endpoints: models.AlertEndpoints{
 			ID:       "alertmanager",
 			Name:     "Alertmanager",
 			Endpoint: "/alertmanager",
+			Icon:     "vscode-icons:file-type-prometheus",
+			Color:    "#e6522c",
 		},
 	}, nil
 }
@@ -73,8 +89,8 @@ func (s *PluginRPCServer) ExecuteTask(request plugins.ExecuteTaskRequest, resp *
 	return err
 }
 
-func (s *PluginRPCServer) HandlePayload(request plugins.PayloadHandlerRequest, resp *plugins.Response) error {
-	result, err := s.Impl.HandlePayload(request)
+func (s *PluginRPCServer) HandleAlert(request plugins.AlertHandlerRequest, resp *plugins.Response) error {
+	result, err := s.Impl.HandleAlert(request)
 	*resp = result
 	return err
 }

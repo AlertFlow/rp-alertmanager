@@ -6,6 +6,7 @@ import (
 	"net/rpc"
 
 	"github.com/AlertFlow/runner/pkg/alerts"
+	"github.com/AlertFlow/runner/pkg/flows"
 	"github.com/AlertFlow/runner/pkg/plugins"
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
@@ -37,6 +38,14 @@ func (p *AlertmanagerEndpointPlugin) HandleAlert(request plugins.AlertHandlerReq
 	payload := Payload{}
 	json.Unmarshal(incPayload, &payload)
 
+	// get flow data
+	flow, err := flows.GetFlowData(request.Config, payload.Receiver)
+	if err != nil {
+		return plugins.Response{
+			Success: false,
+		}, err
+	}
+
 	alertData := models.Alerts{
 		Payload:  incPayload,
 		FlowID:   payload.Receiver,
@@ -52,6 +61,26 @@ func (p *AlertmanagerEndpointPlugin) HandleAlert(request plugins.AlertHandlerReq
 		alertData.Name = gjson.Get(payloadString, "groupLabels.alertname").String()
 	} else {
 		alertData.Name = "Unknown"
+	}
+
+	if flow.GroupAlerts {
+		// check if payload matched the group key identifier
+		if gjson.Get(payloadString, flow.GroupAlertsIdentifier).Exists() {
+			alertData.GroupKey = flow.GroupAlertsIdentifier + "=" + gjson.Get(payloadString, flow.GroupAlertsIdentifier).String()
+
+			// get grouped alerts
+			groupedAlerts, err := alerts.GetGroupedAlerts(request.Config, payload.Receiver, alertData.GroupKey)
+			if err != nil {
+				return plugins.Response{
+					Success: false,
+				}, err
+			}
+
+			if len(groupedAlerts) > 0 {
+				// get the first alert in the group
+				alertData.ParentID = groupedAlerts[0].ID.String()
+			}
+		}
 	}
 
 	// check if alert is resolved

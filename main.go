@@ -8,8 +8,11 @@ import (
 	"github.com/AlertFlow/runner/pkg/alerts"
 	"github.com/AlertFlow/runner/pkg/flows"
 	"github.com/AlertFlow/runner/pkg/plugins"
+	"github.com/google/uuid"
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
+
+	"time"
 
 	"github.com/hashicorp/go-plugin"
 	"github.com/tidwall/gjson"
@@ -18,7 +21,14 @@ import (
 type Payload struct {
 	Receiver string `json:"receiver"`
 	Status   string `json:"status"`
-	Origin   string `json:"externalURL"`
+}
+
+func parseTime(timeStr string) time.Time {
+	parsedTime, err := time.Parse(time.RFC3339, timeStr)
+	if err != nil {
+		return time.Time{}
+	}
+	return parsedTime
 }
 
 // AlertmanagerEndpointPlugin is an implementation of the Plugin interface
@@ -61,6 +71,20 @@ func (p *AlertmanagerEndpointPlugin) HandleAlert(request plugins.AlertHandlerReq
 		alertData.Name = gjson.Get(payloadString, "groupLabels.alertname").String()
 	} else {
 		alertData.Name = "Unknown"
+	}
+
+	// get sub alerts
+	if gjson.Get(payloadString, "alerts").Exists() {
+		for _, alert := range gjson.Get(payloadString, "alerts").Array() {
+			alertData.SubAlerts = append(alertData.SubAlerts, models.SubAlerts{
+				ID:         uuid.New().String(),
+				Name:       alert.Get("labels.alertname").String(),
+				Status:     alert.Get("status").String(),
+				Labels:     json.RawMessage(alert.Get("labels").Raw),
+				StartedAt:  parseTime(alert.Get("startsAt").String()),
+				ResolvedAt: parseTime(alert.Get("endsAt").String()),
+			})
+		}
 	}
 
 	if flow.GroupAlerts {

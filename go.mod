@@ -1,13 +1,14 @@
 module github.com/AlertFlow/rp-alertmanager
 
-go 1.23.5
+go 1.24.0
 
 require (
-	github.com/AlertFlow/runner v1.0.0-beta7
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-plugin v1.6.3
 	github.com/tidwall/gjson v1.18.0
-	github.com/v1Flows/alertFlow/services/backend v0.0.0-20250308205151-c6c9aecb576f
+	github.com/v1Flows/alertFlow/services/backend v0.0.0-20250317112742-7a11f04dd445
+	github.com/v1Flows/runner v1.0.0-beta1.0.20250317204312-9b91354937a5
+	github.com/v1Flows/shared-library v1.0.5
 )
 
 require (
@@ -39,13 +40,14 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/uptrace/bun v1.2.11 // indirect
+	github.com/v1Flows/exFlow/services/backend v0.0.0-20250314134041-010ef4dcb540 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b // indirect

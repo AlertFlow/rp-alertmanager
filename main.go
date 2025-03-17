@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"net/rpc"
 
-	"github.com/AlertFlow/runner/pkg/alerts"
-	"github.com/AlertFlow/runner/pkg/flows"
-	"github.com/AlertFlow/runner/pkg/plugins"
 	"github.com/google/uuid"
+	"github.com/v1Flows/runner/pkg/alerts"
+	"github.com/v1Flows/runner/pkg/flows"
+	"github.com/v1Flows/runner/pkg/plugins"
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
+	shared_models "github.com/v1Flows/shared-library/pkg/models"
 
 	"time"
 
@@ -40,7 +41,7 @@ func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequ
 	}, nil
 }
 
-func (p *AlertmanagerEndpointPlugin) HandleAlert(request plugins.AlertHandlerRequest) (plugins.Response, error) {
+func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointRequest) (plugins.Response, error) {
 	incPayload := request.Body
 
 	payloadString := string(incPayload)
@@ -49,7 +50,7 @@ func (p *AlertmanagerEndpointPlugin) HandleAlert(request plugins.AlertHandlerReq
 	json.Unmarshal(incPayload, &payload)
 
 	// get flow data
-	flow, err := flows.GetFlowData(request.Config, payload.Receiver)
+	_, flow, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
 	if err != nil {
 		return plugins.Response{
 			Success: false,
@@ -115,18 +116,18 @@ func (p *AlertmanagerEndpointPlugin) HandleAlert(request plugins.AlertHandlerReq
 	}, nil
 }
 
-func (p *AlertmanagerEndpointPlugin) Info() (models.Plugins, error) {
-	return models.Plugins{
+func (p *AlertmanagerEndpointPlugin) Info() (shared_models.Plugin, error) {
+	return shared_models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "endpoint",
 		Version: "1.1.2",
 		Author:  "JustNZ",
-		Endpoints: models.AlertEndpoints{
-			ID:       "alertmanager",
-			Name:     "Alertmanager",
-			Endpoint: "/alertmanager",
-			Icon:     "vscode-icons:file-type-prometheus",
-			Color:    "#e6522c",
+		Endpoint: shared_models.Endpoint{
+			ID:    "alertmanager",
+			Name:  "Alertmanager",
+			Path:  "/alertmanager",
+			Icon:  "vscode-icons:file-type-prometheus",
+			Color: "#e6522c",
 		},
 	}, nil
 }
@@ -142,13 +143,13 @@ func (s *PluginRPCServer) ExecuteTask(request plugins.ExecuteTaskRequest, resp *
 	return err
 }
 
-func (s *PluginRPCServer) HandleAlert(request plugins.AlertHandlerRequest, resp *plugins.Response) error {
-	result, err := s.Impl.HandleAlert(request)
+func (s *PluginRPCServer) EndpointRequest(request plugins.EndpointRequest, resp *plugins.Response) error {
+	result, err := s.Impl.EndpointRequest(request)
 	*resp = result
 	return err
 }
 
-func (s *PluginRPCServer) Info(args interface{}, resp *models.Plugins) error {
+func (s *PluginRPCServer) Info(args interface{}, resp *shared_models.Plugin) error {
 	result, err := s.Impl.Info()
 	*resp = result
 	return err

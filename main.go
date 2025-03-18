@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/v1Flows/runner/pkg/alerts"
+	"github.com/v1Flows/runner/pkg/flows"
 	"github.com/v1Flows/runner/pkg/plugins"
 
 	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
@@ -82,6 +83,14 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 				ResolvedAt: parseTime(alert.Get("endsAt").String()),
 			})
 		}
+	}
+
+	// get flow data
+	_, _, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
+	if err != nil {
+		return plugins.Response{
+			Success: false,
+		}, err
 	}
 
 	// check if alert is resolved

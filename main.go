@@ -133,7 +133,7 @@ func (p *AlertmanagerEndpointPlugin) Info() (shared_models.Plugin, error) {
 	return shared_models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "endpoint",
-		Version: "1.1.2",
+		Version: "1.2.0",
 		Author:  "JustNZ",
 		Endpoint: shared_models.Endpoint{
 			ID:    "alertmanager",

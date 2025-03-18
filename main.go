@@ -92,15 +92,27 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 	}
 
 	// get flow data
-	var afFlow af_models.Flows
-	_, afFlow, _, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
+	bytes, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
 	if err != nil {
 		return plugins.Response{
 			Success: false,
 		}, err
 	}
 
-	flow := afFlow
+	if bytes == nil {
+		return plugins.Response{
+			Success: false,
+		}, fmt.Errorf("flow not found")
+	}
+
+	flow := af_models.Flows{}
+	err = json.Unmarshal(bytes, &flow)
+	if err != nil {
+		return plugins.Response{
+			Success: false,
+		}, err
+	}
+
 	if flow.GroupAlerts {
 		// check if payload matched the group key identifier
 		if gjson.Get(payloadString, flow.GroupAlertsIdentifier).Exists() {

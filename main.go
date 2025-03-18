@@ -12,7 +12,6 @@ import (
 	"github.com/v1Flows/runner/pkg/plugins"
 
 	af_models "github.com/v1Flows/alertFlow/services/backend/pkg/models"
-	ef_models "github.com/v1Flows/exFlow/services/backend/pkg/models"
 	shared_models "github.com/v1Flows/shared-library/pkg/models"
 
 	"time"
@@ -44,6 +43,12 @@ func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequ
 }
 
 func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointRequest) (plugins.Response, error) {
+	if request.Platform != "alertflow" {
+		return plugins.Response{
+			Success: false,
+		}, fmt.Errorf("platform not supported")
+	}
+
 	if request.Body == nil {
 		return plugins.Response{
 			Success: false,
@@ -55,7 +60,7 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 	payload := Payload{}
 	json.Unmarshal(incPayload, &payload)
 
-	alertData := models.Alerts{
+	alertData := af_models.Alerts{
 		Payload:  incPayload,
 		FlowID:   payload.Receiver,
 		RunnerID: request.Config.Alertflow.RunnerID,
@@ -75,7 +80,7 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 	// get sub alerts
 	if gjson.Get(payloadString, "alerts").Exists() {
 		for _, alert := range gjson.Get(payloadString, "alerts").Array() {
-			alertData.SubAlerts = append(alertData.SubAlerts, models.SubAlerts{
+			alertData.SubAlerts = append(alertData.SubAlerts, af_models.SubAlerts{
 				ID:         uuid.New().String(),
 				Name:       alert.Get("labels.alertname").String(),
 				Status:     alert.Get("status").String(),

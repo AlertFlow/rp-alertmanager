@@ -11,7 +11,8 @@ import (
 	"github.com/v1Flows/runner/pkg/flows"
 	"github.com/v1Flows/runner/pkg/plugins"
 
-	"github.com/v1Flows/alertFlow/services/backend/pkg/models"
+	af_models "github.com/v1Flows/alertFlow/services/backend/pkg/models"
+	ef_models "github.com/v1Flows/exFlow/services/backend/pkg/models"
 	shared_models "github.com/v1Flows/shared-library/pkg/models"
 
 	"time"
@@ -86,11 +87,33 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 	}
 
 	// get flow data
-	_, _, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
+	var afFlow af_models.Flows
+	_, afFlow, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
 	if err != nil {
 		return plugins.Response{
 			Success: false,
 		}, err
+	}
+
+	flow := afFlow
+	if flow.GroupAlerts {
+		// check if payload matched the group key identifier
+		if gjson.Get(payloadString, flow.GroupAlertsIdentifier).Exists() {
+			alertData.GroupKey = flow.GroupAlertsIdentifier + "=" + gjson.Get(payloadString, flow.GroupAlertsIdentifier).String()
+
+			// get grouped alerts
+			groupedAlerts, err := alerts.GetGroupedAlerts(request.Config, payload.Receiver, alertData.GroupKey)
+			if err != nil {
+				return plugins.Response{
+					Success: false,
+				}, err
+			}
+
+			if len(groupedAlerts) > 0 {
+				// get the first alert in the group
+				alertData.ParentID = groupedAlerts[0].ID.String()
+			}
+		}
 	}
 
 	// check if alert is resolved

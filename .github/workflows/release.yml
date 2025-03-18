@@ -27,7 +27,7 @@ jobs:
         with:
           name: Release ${{ github.ref_name }}
           tag: ${{ github.ref_name }}
-          artifacts: alertmanager.so
+          artifacts: alertmanager
           skipIfReleaseExists: true
           generateReleaseNotes: true
           token: ${{ secrets.ACCESS_TOKEN }}

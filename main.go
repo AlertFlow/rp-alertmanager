@@ -93,7 +93,7 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 
 	// get flow data
 	var afFlow af_models.Flows
-	_, afFlow, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
+	_, afFlow, _, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
 	if err != nil {
 		return plugins.Response{
 			Success: false,

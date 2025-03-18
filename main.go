@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/rpc"
 
 	"github.com/google/uuid"
@@ -42,20 +43,16 @@ func (p *AlertmanagerEndpointPlugin) ExecuteTask(request plugins.ExecuteTaskRequ
 }
 
 func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointRequest) (plugins.Response, error) {
-	incPayload := request.Body
-
-	payloadString := string(incPayload)
-
-	payload := Payload{}
-	json.Unmarshal(incPayload, &payload)
-
-	// get flow data
-	_, flow, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
-	if err != nil {
+	if request.Body == nil {
 		return plugins.Response{
 			Success: false,
-		}, err
+		}, fmt.Errorf("no body found")
 	}
+
+	incPayload := request.Body
+	payloadString := string(incPayload)
+	payload := Payload{}
+	json.Unmarshal(incPayload, &payload)
 
 	alertData := models.Alerts{
 		Payload:  incPayload,
@@ -86,6 +83,14 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 				ResolvedAt: parseTime(alert.Get("endsAt").String()),
 			})
 		}
+	}
+
+	// get flow data
+	_, flow, err := flows.GetFlowData(request.Config, payload.Receiver, request.Platform)
+	if err != nil {
+		return plugins.Response{
+			Success: false,
+		}, err
 	}
 
 	if flow.GroupAlerts {

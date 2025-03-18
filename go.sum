@@ -99,8 +99,8 @@ github.com/v1Flows/alertFlow/services/backend v0.0.0-20250317112742-7a11f04dd445
 github.com/v1Flows/alertFlow/services/backend v0.0.0-20250317112742-7a11f04dd445/go.mod h1:wN72OUmADQ95eNYyiYM4oa6FOnvoCBRljzsGQGdvaIA=
 github.com/v1Flows/exFlow/services/backend v0.0.0-20250314134041-010ef4dcb540 h1:Fu/mOZKwyRpm8QP5FfgAnDfv1XjgEJAKjHNzTVlIxW0=
 github.com/v1Flows/exFlow/services/backend v0.0.0-20250314134041-010ef4dcb540/go.mod h1:63Ad53i4eEkN3C6QeTsOWvLASjn43+cEwrWAcllX8So=
-github.com/v1Flows/runner v1.0.0-beta1.0.20250317204312-9b91354937a5 h1:0cc439zlxuX9FUSzO7DSuplURyqBUGTpEdtE5xkjDrQ=
-github.com/v1Flows/runner v1.0.0-beta1.0.20250317204312-9b91354937a5/go.mod h1:vj1/aiFvRl7PIqR1lAJ9yxQYUMo3mZCXFKhLS4dZQU0=
+github.com/v1Flows/runner v1.0.0-beta1.0.20250318064139-4bcab75637d0 h1:uwKnePGejiY275mWPnyZwyYGIsW1PbfN9ILNJRV27CE=
+github.com/v1Flows/runner v1.0.0-beta1.0.20250318064139-4bcab75637d0/go.mod h1:vj1/aiFvRl7PIqR1lAJ9yxQYUMo3mZCXFKhLS4dZQU0=
 github.com/v1Flows/shared-library v1.0.5 h1:/VXRSc7dhWmu7DuiEs6xj27rIVciEHsV2xaT60Ji7os=
 github.com/v1Flows/shared-library v1.0.5/go.mod h1:UVP6m6Nri6JC3L0xS3wkbqGvfQJ5fsYIJx81Gfj1TFw=
 github.com/vmihailenco/msgpack/v5 v5.4.1 h1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IUPn0Bjt8=

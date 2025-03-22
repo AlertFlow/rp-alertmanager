@@ -141,7 +141,7 @@ func (p *AlertmanagerEndpointPlugin) EndpointRequest(request plugins.EndpointReq
 	}, nil
 }
 
-func (p *AlertmanagerEndpointPlugin) Info() (shared_models.Plugin, error) {
+func (p *AlertmanagerEndpointPlugin) Info(request plugins.InfoRequest) (shared_models.Plugin, error) {
 	return shared_models.Plugin{
 		Name:    "Alertmanager",
 		Type:    "endpoint",
@@ -174,8 +174,8 @@ func (s *PluginRPCServer) EndpointRequest(request plugins.EndpointRequest, resp 
 	return err
 }
 
-func (s *PluginRPCServer) Info(args interface{}, resp *shared_models.Plugin) error {
-	result, err := s.Impl.Info()
+func (s *PluginRPCServer) Info(request plugins.InfoRequest, resp *shared_models.Plugin) error {
+	result, err := s.Impl.Info(request)
 	*resp = result
 	return err
 }
